@@ -32,7 +32,7 @@ $listUser = $db->readUser($keyword);
         body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 0; }
         .flex-main { display: flex; min-height: 100vh; }
         .content { flex: 1; display: flex; flex-direction: column; }
-        .inner-content { padding: 0 30px 30px 30px; display: flex; gap: 20px; }
+        .inner-content { padding: 10px 30px 30px 30px; display: flex; gap: 20px; }
         .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; }
         .form-box { width: 320px; }
         .table-box { flex: 1; }
@@ -45,8 +45,8 @@ $listUser = $db->readUser($keyword);
         .btn-blue { background: #007bff; color: white; }
         .btn-green { background: #28a745; color: white; width: 100%; }
         .btn-gray { background: #6c757d; color: white; }
-        .btn-orange { background: #ffc107; color: black; padding: 4px 8px; font-size: 12px; }
-        .btn-red { background: #dc3545; color: white; padding: 4px 8px; font-size: 12px; }
+        .btn-blue { background: #0b5ed7; color: white; padding: 6px 12px; font-size: 13px; } /* Edit warna biru di gambar */
+        .btn-red { background: #bb2d3b; color: white; padding: 6px 12px; font-size: 13px; } /* Delete warna merah di gambar */
         .alert { padding: 10px; border-radius: 6px; margin: 15px 30px 0 30px; font-size: 14px; font-weight: bold; }
         .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
@@ -83,19 +83,19 @@ $listUser = $db->readUser($keyword);
                     <?php endif; ?>
 
                     <div class="group">
-                        <label>Nama Lengkap:</label>
+                        <label>Nama User</label>
                         <input type="text" name="nama_user" value="<?= $isEdit ? htmlspecialchars($uEdit->nama_user) : ''; ?>" placeholder="Masukkan nama lengkap" required>
                     </div>
                     <div class="group">
-                        <label>Username:</label>
+                        <label>Username</label>
                         <input type="text" name="username" value="<?= $isEdit ? htmlspecialchars($uEdit->username) : ''; ?>" placeholder="Masukkan username" required>
                     </div>
                     <div class="group">
-                        <label>Password:</label>
-                        <input type="password" name="password" placeholder="<?= $isEdit ? 'Kosongkan jika tidak diganti' : 'Masukkan password'; ?>" <?= $isEdit ? '' : 'required'; ?>>
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="***" <?= $isEdit ? '' : 'required'; ?>>
                     </div>
                     
-                    <button type="submit" class="btn btn-green"><?= $isEdit ? "Simpan Perubahan" : "Simpan Data"; ?></button>
+                    <button type="submit" class="btn btn-green"><?= $isEdit ? "Simpan Perubahan" : "Tambah User"; ?></button>
                     
                     <?php if ($isEdit): ?>
                         <div style="margin-top: 10px; text-align: center;">
@@ -106,7 +106,7 @@ $listUser = $db->readUser($keyword);
             </div>
 
             <div class="card table-box">
-                <h3>Daftar Admin / User</h3>
+                <h3>Data User</h3>
                 
                 <form action="index.php" method="GET" style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px;">
                     <input type="text" name="cari" placeholder="Cari nama atau username..." value="<?= htmlspecialchars($keyword); ?>" style="width: 220px;">
@@ -117,10 +117,11 @@ $listUser = $db->readUser($keyword);
                     <thead>
                         <tr>
                             <th style="width: 40px;">No</th>
-                            <th>Nama Lengkap</th>
+                            <th>Nama User</th>
                             <th>Username</th>
-                            <th>Waktu Terdaftar</th>
-                            <th style="width: 110px;">Aksi</th>
+                            <th>Password</th>
+                            <th>Dibuat</th>
+                            <th style="width: 130px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,10 +134,11 @@ $listUser = $db->readUser($keyword);
                             <td><?= $no++; ?></td>
                             <td><?= htmlspecialchars($row->nama_user); ?></td>
                             <td><?= htmlspecialchars($row->username); ?></td>
-                            <td><?= $row->create_at; ?></td>
+                            <td>******</td>
+                            <td><?= $row->created_at; ?></td>
                             <td>
-                                <a href="index.php?aksi=edit&id=<?= $row->id_user; ?>" class="btn btn-orange">Ubah</a>
-                                <a href="proses_hapus.php?id=<?= $row->id_user; ?>" class="btn btn-red" onclick="return confirm('Yakin mau menghapus user ini?')">Hapus</a>
+                                <a href="index.php?aksi=edit&id=<?= $row->id_user; ?>" class="btn btn-blue">Edit</a>
+                                <a href="proses_hapus.php?id=<?= $row->id_user; ?>" class="btn btn-red" onclick="return confirm('Yakin mau menghapus user ini?')">Delete</a>
                             </td>
                         </tr>
                         <?php 
@@ -144,7 +146,7 @@ $listUser = $db->readUser($keyword);
                         else:
                         ?>
                         <tr>
-                            <td colspan="5" style="text-align: center; color: #666;">Data tidak ditemukan!</td>
+                            <td colspan="6" style="text-align: center; color: #666;">Data tidak ditemukan!</td>
                         </tr>
                         <?php endif; ?>
                     </tbody>
@@ -155,4 +157,4 @@ $listUser = $db->readUser($keyword);
     </div>
 </div>
 
-<?php include '../layouts/footer.php'; ?>   
+<?php include '../layouts/footer.php'; ?>

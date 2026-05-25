@@ -7,12 +7,13 @@ class Query {
         $this->conn = $koneksi;
     }
 
-    // ==================== LOGIKA DATA USER ====================
+// ==================== LOGIKA DATA USER ====================
     
     // Tampil data + fitur pencarian user
     public function readUser($keyword = "") {
         if (!empty($keyword)) {
             $key = "%$keyword%";
+            // Mencari berdasarkan nama atau username
             $stmt = $this->conn->prepare("SELECT * FROM tbl_user WHERE nama_user LIKE ? OR username LIKE ?");
             $stmt->bind_param("ss", $key, $key);
             $stmt->execute();
@@ -21,7 +22,7 @@ class Query {
         return $this->conn->query("SELECT * FROM tbl_user ORDER BY id_user DESC");
     }
 
-    // Ambil data 1 user berdasarkan ID (untuk mode Edit)
+    // Ambil data 1 user berdasarkan ID (untuk memicu mode isi form Edit)
     public function getIdUser($id) {
         $stmt = $this->conn->prepare("SELECT * FROM tbl_user WHERE id_user = ?");
         $stmt->bind_param("i", $id);
@@ -29,7 +30,7 @@ class Query {
         return $stmt->get_result()->fetch_object();
     }
 
-    // Tambah data user baru lewat dashboard
+    // Tambah data user baru lewat dashboard admin
     public function createUser($nama, $username, $password) {
         $pass_hash = password_hash($password, PASSWORD_DEFAULT);
         $stmt = $this->conn->prepare("INSERT INTO tbl_user (nama_user, username, password) VALUES (?, ?, ?)");
@@ -37,27 +38,29 @@ class Query {
         return $stmt->execute();
     }
 
-    // Update data user (jika password kosong, pakai password lama)
+    // Update data user (jika password kosong, gunakan password lama)
     public function updateUser($id, $nama, $username, $password) {
         if (!empty($password)) {
+            // Jika admin menginput password baru di form
             $pass_hash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $this->conn->prepare("UPDATE tbl_user SET nama_user=?, username=?, password=? WHERE id_user=?");
             $stmt->bind_param("sssi", $nama, $username, $pass_hash, $id);
         } else {
+            // Jika admin mengosongkan kolom password (password lama tidak berubah)
             $stmt = $this->conn->prepare("UPDATE tbl_user SET nama_user=?, username=? WHERE id_user=?");
             $stmt->bind_param("ssi", $nama, $username, $id);
         }
         return $stmt->execute();
     }
 
-    // Hapus data user
+    // Hapus data user dari database
     public function deleteUser($id) {
         $stmt = $this->conn->prepare("DELETE FROM tbl_user WHERE id_user = ?");
         $stmt->bind_param("i", $id);
         return $stmt->execute();
     }
 
-    // ==================== LOGIKA DATA BUKU ====================
+ // ==================== LOGIKA DATA BUKU ====================
     
     // Tampil data + fitur pencarian buku
     public function readBuku($keyword = "") {
@@ -82,10 +85,11 @@ class Query {
     // Tambah data buku beserta upload gambarnya
     public function createBuku($judul, $pengarang, $penerbit, $tahun, $img_name, $img_tmp) {
         $ext = pathinfo($img_name, PATHINFO_EXTENSION);
-        $nama_baru = uniqid() . "." . $ext; // Nama gambar acak agar tidak bentrok
+        $nama_baru = uniqid() . "." . $ext;
         
-        $stmt = $this->conn->prepare("INSERT INTO tbl_buku (judul_buku, pengarang_buku, penerbit_buku, year, gambar) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssis", $judul, $pengarang, $penerbit, $tahun, $nama_baru);
+        // SUDAH DIPERBAIKI: year -> tahun
+        $stmt = $this->conn->prepare("INSERT INTO tbl_buku (judul_buku, pengarang_buku, penerbit_buku, tahun, gambar) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $judul, $pengarang, $penerbit, $tahun, $nama_baru);
         $hasil = $stmt->execute();
         
         if ($hasil) {
@@ -100,8 +104,9 @@ class Query {
             $ext = pathinfo($img_name, PATHINFO_EXTENSION);
             $nama_baru = uniqid() . "." . $ext;
 
-            $stmt = $this->conn->prepare("UPDATE tbl_buku SET judul_buku=?, pengarang_buku=?, penerbit_buku=?, year=?, gambar=? WHERE id_buku=?");
-            $stmt->bind_param("ssmisi", $judul, $pengarang, $penerbit, $tahun, $nama_baru, $id);
+            // SUDAH DIPERBAIKI: year -> tahun, dan bind_param "sssssi"
+            $stmt = $this->conn->prepare("UPDATE tbl_buku SET judul_buku=?, pengarang_buku=?, penerbit_buku=?, tahun=?, gambar=? WHERE id_buku=?");
+            $stmt->bind_param("sssssi", $judul, $pengarang, $penerbit, $tahun, $nama_baru, $id);
             $hasil = $stmt->execute();
             
             if ($hasil) {
@@ -109,8 +114,9 @@ class Query {
             }
             return $hasil;
         } else {
-            $stmt = $this->conn->prepare("UPDATE tbl_buku SET judul_buku=?, pengarang_buku=?, penerbit_buku=?, year=? WHERE id_buku=?");
-            $stmt->bind_param("sssii", $judul, $pengarang, $penerbit, $tahun, $id);
+            // SUDAH DIPERBAIKI: year -> tahun, dan bind_param "ssssi"
+            $stmt = $this->conn->prepare("UPDATE tbl_buku SET judul_buku=?, pengarang_buku=?, penerbit_buku=?, tahun=? WHERE id_buku=?");
+            $stmt->bind_param("ssssi", $judul, $pengarang, $penerbit, $tahun, $id);
             return $stmt->execute();
         }
     }
@@ -122,4 +128,4 @@ class Query {
         return $stmt->execute();
     }
 }
-?>  
+?>
