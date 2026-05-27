@@ -8,7 +8,7 @@ if (!isset($_SESSION['username'])) {
 <html>
 
 <head>
-    <title>Dashboard</title>
+    <title>Dashboard Perpustakaan | Home</title>
     <style>
         body {
             margin: 0;

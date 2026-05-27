@@ -1,32 +1,32 @@
 <style>
-    .sidebar-biasa {
+    .sidebar {
         width: 220px;
         background: darkgreen;
         color: white;
-        padding: 20px 10px;
+        padding: 20px 20px;
         font-family: sans-serif;
     }
 
-    .sidebar-biasa a {
+    .sidebar a {
         display: block;
         background: white;
         color: darkgreen;
-        padding: 10px;
-        margin-bottom: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
         text-decoration: none;
         font-weight: bold;
         text-align: center;
         border-radius: 4px;
     }
 
-    .sidebar-biasa .btn-logout {
+    .sidebar .btn-logout {
         background: #63d959;
         color: darkgreen;
     }
 </style>
 
-<div class="sidebar-biasa">
-    <h3 style="text-align: center; margin-bottom: 20px;">MENU</h3>
+<div class="sidebar">
+    <h3 style="text-align: center; margin-bottom: 50px; font-size: 30px;">MENU</h3>
 
     <a href="../dashboard/index.php">Dashboard</a>
     <a href="../user/index.php">Data User</a>

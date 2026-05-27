@@ -9,9 +9,6 @@ require_once '../koneksi.php';
 require_once '../query.php';
 $db = new Query($conn);
 
-$page = 'buku';
-$title = 'Kelola Data Buku';
-
 // LOGIKA IF PHP UNTUK MODE EDIT
 $isEdit = false;
 $bEdit = null;
@@ -26,7 +23,7 @@ $listBuku = $db->readBuku($keyword);
 <html>
 
 <head>
-    <title><?= $title ?></title>
+    <title>Dashboard Buku | Home</title>
     <style>
         body {
             margin: 0;
@@ -181,16 +178,31 @@ $listBuku = $db->readBuku($keyword);
 
         <div class="area-konten">
             <div class="topbar-manual">
-                <h2 style="margin: 0;"><?= $title ?></h2>
+                <h2 style="margin: 0;">Dashboard Buku | Home</h2>
             </div>
 
-        <?php if (isset($_SESSION['berhasil'])): ?>
-            <div class="alert success"><?= $_SESSION['berhasil']; unset($_SESSION['berhasil']); ?></div>
-        <?php endif; ?>
-        
-        <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert danger"><?= $_SESSION['error']; unset($_SESSION['error']); ?></div>
-        <?php endif; ?>
+            <?php if (isset($_SESSION['errors']) && is_array($_SESSION['errors'])) : ?>
+            <div
+                style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <strong style="display: block; margin-bottom: 5px;">Terjadi kesalahan:</strong>
+
+                <ol style="margin-left: 20px; padding-left: 0;">
+                    <?php foreach ($_SESSION['errors'] as $error) : ?>
+                    <li><?= htmlspecialchars($error) ?></li>
+                    <?php endforeach; ?>
+                </ol>
+
+            </div>
+            <?php unset($_SESSION['errors']); // Hapus session biar gak muncul terus pas di-refresh ?>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['berhasil'])) : ?>
+            <div
+                style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <?= $_SESSION['berhasil'] ?>
+            </div>
+            <?php unset($_SESSION['berhasil']); ?>
+            <?php endif; ?>
 
             <div class="inner-content">
                 <div class="kotak-putih form-box">
@@ -207,25 +219,25 @@ $listBuku = $db->readBuku($keyword);
                             <label>Judul Buku</label>
                             <input type="text" name="judul_buku"
                                 value="<?= $isEdit ? htmlspecialchars($bEdit->judul_buku) : '' ?>"
-                                placeholder="Judul buku" >
+                                placeholder="Judul buku">
                         </div>
                         <div class="group">
                             <label>Pengarang</label>
                             <input type="text" name="pengarang_buku"
                                 value="<?= $isEdit ? htmlspecialchars($bEdit->pengarang_buku) : '' ?>"
-                                placeholder="Nama pengarang" >
+                                placeholder="Nama pengarang">
                         </div>
                         <div class="group">
                             <label>Penerbit</label>
                             <input type="text" name="penerbit_buku"
                                 value="<?= $isEdit ? htmlspecialchars($bEdit->penerbit_buku) : '' ?>"
-                                placeholder="Nama penerbit" >
+                                placeholder="Nama penerbit">
                         </div>
                         <div class="group">
                             <label>Tahun Terbit</label>
                             <input type="number" name="tahun"
-                                value="<?= $isEdit ? htmlspecialchars($bEdit->tahun) : '' ?>" placeholder="Contoh: 2026"
-                                >
+                                value="<?= $isEdit ? htmlspecialchars($bEdit->tahun) : '' ?>"
+                                placeholder="Contoh: 2026">
                         </div>
                         <div class="group">
                             <label>Cover Buku</label>

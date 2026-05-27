@@ -6,16 +6,45 @@ require_once '../query.php';
 $db = new Query($conn);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id = (int) $_POST['id_buku']; // Amankan ID dengan type casting integer
+    $id = (int) $_POST['id_buku']; // Amankan ID
     $judul = trim($_POST['judul_buku']);
     $pengarang = trim($_POST['pengarang_buku']);
     $penerbit = trim($_POST['penerbit_buku']);
     $tahun = trim($_POST['tahun']);
 
-    if ($id <= 0 || empty($judul) || empty($pengarang) || empty($penerbit) || empty($tahun)) {
-        $_SESSION['error'] = 'Form edit tidak valid atau ada data yang kosong!';
-        header('Location: index.php');
-        exit();
+    $errors = [];
+
+    // Validasi ID dasar
+    if ($id <= 0) {
+        $errors[] = 'ID Buku tidak valid!';
+    }
+
+    // Validasi 1: Cek Input Teks Kosong
+    if (empty($judul)) {
+        $errors[] = 'Judul buku tidak boleh kosong!';
+    }
+    if (empty($pengarang)) {
+        $errors[] = 'Nama pengarang tidak boleh kosong!';
+    }
+    if (empty($penerbit)) {
+        $errors[] = 'Nama penerbit tidak boleh kosong!';
+    }
+    if (empty($tahun)) {
+        $errors[] = 'Tahun terbit tidak boleh kosong!';
+    }
+
+    // Validasi 2: Minimal Karakter (Hanya dicek jika tidak kosong)
+    if (!empty($judul) && strlen($judul) < 5) {
+        $errors[] = 'Judul terlalu pendek! Minimal harus 5 karakter.';
+    }
+    if (!empty($pengarang) && strlen($pengarang) < 5) {
+        $errors[] = 'Nama pengarang terlalu pendek! Minimal harus 5 karakter.';
+    }
+    if (!empty($penerbit) && strlen($penerbit) < 5) {
+        $errors[] = 'Nama penerbit terlalu pendek! Minimal harus 5 karakter.';
+    }
+    if (!empty($tahun) && strlen($tahun) < 4) {
+        $errors[] = 'Tahun terbit tidak valid! Minimal harus 4 karakter.';
     }
 
     $img_name = $_FILES['gambar']['name'];
@@ -24,45 +53,51 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $nama_baru_gambar = ''; // Default kosong jika tidak ganti gambar
 
-    // Jika user mengunggah gambar baru
+    // Validasi 3: Jika user memilih/mengunggah gambar baru
     if (!empty($img_name)) {
-        // Validasi Ekstensi
         $ekstensiValid = ['jpg', 'jpeg', 'png', 'webp'];
         $ext = strtolower(pathinfo($img_name, PATHINFO_EXTENSION));
 
         if (!in_array($ext, $ekstensiValid)) {
-            $_SESSION['error'] = 'Format gambar salah! Hanya menerima JPG, JPEG, PNG, dan WEBP.';
-            header('Location: index.php');
-            exit();
+            $errors[] = 'Format gambar salah! Hanya menerima JPG, JPEG, PNG, dan WEBP.';
+        } else {
+            $cekMime = getimagesize($img_tmp);
+            if ($cekMime === false) {
+                $errors[] = 'File terdeteksi bukan gambar asli!';
+            }
         }
 
-        // Validasi MIME Type asli gambar
-        $cekMime = getimagesize($img_tmp);
-        if ($cekMime === false) {
-            $_SESSION['error'] = 'File terdeteksi bukan gambar asli!';
-            header('Location: index.php');
-            exit();
-        }
-
-        // Validasi Ukuran (Maksimal 2MB)
         if ($img_size > 2000000) {
-            $_SESSION['error'] = 'Ukuran gambar maksimal 2MB!';
-            header('Location: index.php');
-            exit();
+            $errors[] = 'Ukuran gambar baru maksimal 2MB!';
         }
 
-        // Buat nama baru untuk gambar baru
-        $nama_baru_gambar = uniqid() . '.' . $ext;
+        // Set nama baru jika sementara tidak ada error terkait gambar
+        if (empty($errors)) {
+            $nama_baru_gambar = uniqid() . '.' . $ext;
+        }
     }
 
-    // Panggil updateBuku (Logika hapus gambar fisik lama sudah di-handle otomatis di dalam class Query)
+    // JIKA ADA ERROR
+    if (!empty($errors)) {
+        $_SESSION['errors'] = $errors;
+        // Kembalikan ke halaman form edit berdasarkan ID buku tersebut agar inputan tidak hilang
+        header('Location: index.php?id=' . $id);
+        exit();
+    }
+
+    // JIKA LOLOS VALIDASI: Eksekusi update
     $update = $db->updateBuku($id, $judul, $pengarang, $penerbit, $tahun, $nama_baru_gambar, $img_tmp);
 
     if ($update) {
         $_SESSION['berhasil'] = 'Data buku sukses diubah!';
+        header('Location: index.php');
+        exit();
     } else {
-        $_SESSION['error'] = 'Gagal mengubah data buku!';
+        $_SESSION['errors'] = ['Gagal mengubah data buku di database!'];
     }
+
+    header('Location: index.php?id=' . $id);
+    exit();
 }
 
 header('Location: index.php');

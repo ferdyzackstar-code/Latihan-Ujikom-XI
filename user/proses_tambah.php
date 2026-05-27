@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once "../koneksi.php";
-require_once "../query.php";
+require_once '../koneksi.php';
+require_once '../query.php';
 $db = new Query($conn);
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -10,24 +10,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $user = trim($_POST['username']);
     $pass = $_POST['password']; // Password tidak perlu di-trim karena spasi bisa jadi bagian dari password
 
-    // Cek apakah setelah di-trim, form-nya beneran diisi teks valid
-    if (!empty($nama) && !empty($user) && !empty($pass)) {
-        
-        // Eksekusi simpan ke database (password di-hash otomatis di dalam class Query)
-        $simpan = $db->createUser($nama, $user, $pass);
-        
-        if ($simpan) {
-            $_SESSION['berhasil'] = "User baru sukses ditambahkan!";
-            header("Location: index.php"); // Sukses -> Kembali ke halaman utama user
-            exit();
-        } else {
-            $_SESSION['error'] = "Gagal menambah data, username mungkin sudah digunakan!";
-        }
-    } else {
-        $_SESSION['error'] = "Semua form wajib diisi dengan benar (tidak boleh hanya spasi)!";
+    // Bikin array kosong buat nampung semua error
+    $errors = [];
+
+    // Validasi 1: Cek form kosong
+    if (empty($nama)) {
+        $errors[] = 'Nama user tidak boleh kosong!';
     }
-    
-    // Jika gagal, kembalikan ke form tambah user (sesuaikan nama filenya, misal: tambah.php atau index.php?page=tambah)
-    header("Location: index.php"); 
+    if (empty($user)) {
+        $errors[] = 'Username tidak boleh kosong!';
+    }
+    if (empty($pass)) {
+        $errors[] = 'Password tidak boleh kosong!';
+    }
+
+    // Validasi 2: Panjang karakter (Hanya dicek kalau inputan gak kosong)
+    if (!empty($user) && strlen($user) < 5) {
+        $errors[] = 'Username terlalu pendek! Minimal 5 karakter.';
+    }
+    if (!empty($pass) && strlen($pass) < 8) {
+        $errors[] = 'Password terlalu lemah! Minimal 8 karakter.';
+    }
+
+    // JIKA ADA ERROR (Array $errors tidak kosong)
+    if (!empty($errors)) {
+        // Masukkan seluruh array error ke dalam session
+        $_SESSION['errors'] = $errors;
+        header('Location: index.php');
+        exit();
+    }
+
+    // Eksekusi simpan ke database (password di-hash otomatis di dalam class Query)
+    $simpan = $db->createUser($nama, $user, $pass);
+
+    if ($simpan) {
+        $_SESSION['berhasil'] = 'User baru sukses ditambahkan!';
+    } else {
+        // Karena kita sudah sepakat pakai array list ol, eror database ini kita masukkan ke array errors juga biar seragam
+        $_SESSION['errors'] = ['Gagal menambah data, username mungkin sudah digunakan!'];
+    }
+
+    // Kembalikan ke halaman utama setelah proses selesai
+    header('Location: index.php');
     exit();
 }

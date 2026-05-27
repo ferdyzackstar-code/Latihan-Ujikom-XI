@@ -9,9 +9,6 @@ require_once '../koneksi.php';
 require_once '../query.php';
 $db = new Query($conn);
 
-$page = 'user';
-$title = 'Kelola Data User';
-
 // LOGIKA IF PHP UNTUK MODE EDIT
 $isEdit = false;
 $uEdit = null;
@@ -27,7 +24,7 @@ $listUser = $db->readUser($keyword);
 <html>
 
 <head>
-    <title><?= $title ?></title>
+    <title>Dashboard User | Home</title>
     <style>
         body {
             margin: 0;
@@ -47,7 +44,7 @@ $listUser = $db->readUser($keyword);
         }
 
         /* Topbar langsung disatukan di sini */
-        .topbar-manual {
+        .topbar {
             background: white;
             padding: 15px;
             border-bottom: 1px solid lightgray;
@@ -175,17 +172,32 @@ $listUser = $db->readUser($keyword);
         <?php include '../layouts/sidebar.php'; ?>
 
         <div class="area-konten">
-            <div class="topbar-manual">
-                <h2 style="margin: 0;"><?= $title ?></h2>
+            <div class="topbar">
+                <h2 style="margin: 0;">Dashboard User | Home</h2>
             </div>
 
-        <?php if (isset($_SESSION['berhasil'])): ?>
-            <div class="alert success"><?= $_SESSION['berhasil']; unset($_SESSION['berhasil']); ?></div>
-        <?php endif; ?>
-        
-        <?php if (isset($_SESSION['error'])): ?>
-            <div class="alert danger"><?= $_SESSION['error']; unset($_SESSION['error']); ?></div>
-        <?php endif; ?>
+            <?php if (isset($_SESSION['errors']) && is_array($_SESSION['errors'])) : ?>
+            <div
+                style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <strong style="display: block; margin-bottom: 5px;">Terjadi kesalahan:</strong>
+
+                <ol style="margin-left: 20px; padding-left: 0;">
+                    <?php foreach ($_SESSION['errors'] as $error) : ?>
+                    <li><?= htmlspecialchars($error) ?></li>
+                    <?php endforeach; ?>
+                </ol>
+
+            </div>
+            <?php unset($_SESSION['errors']); // Hapus session biar gak muncul terus pas di-refresh ?>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['berhasil'])) : ?>
+            <div
+                style="background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                <?= $_SESSION['berhasil'] ?>
+            </div>
+            <?php unset($_SESSION['berhasil']); ?>
+            <?php endif; ?>
 
             <div class="inner-content">
                 <div class="kotak-putih form-box">
@@ -200,13 +212,12 @@ $listUser = $db->readUser($keyword);
                             <label>Nama User</label>
                             <input type="text" name="nama_user"
                                 value="<?= $isEdit ? htmlspecialchars($uEdit->nama_user) : '' ?>"
-                                placeholder="Nama lengkap" >
+                                placeholder="Nama lengkap">
                         </div>
                         <div class="group">
                             <label>Username</label>
                             <input type="text" name="username"
-                                value="<?= $isEdit ? htmlspecialchars($uEdit->username) : '' ?>" placeholder="Username"
-                                >
+                                value="<?= $isEdit ? htmlspecialchars($uEdit->username) : '' ?>" placeholder="Username">
                         </div>
                         <div class="group">
                             <label>Password</label>
