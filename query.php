@@ -1,131 +1,159 @@
 <?php
-class Query {
+class Query
+{
     private $conn;
 
     // Menangkap koneksi database dari luar
-    public function __construct($koneksi) {
+    public function __construct($koneksi)
+    {
         $this->conn = $koneksi;
     }
 
-// ==================== LOGIKA DATA USER ====================
-    
+    // ==================== LOGIKA DATA USER ====================
+
     // Tampil data + fitur pencarian user
-    public function readUser($keyword = "") {
+    public function readUser($keyword = '')
+    {
         if (!empty($keyword)) {
             $key = "%$keyword%";
-            // Mencari berdasarkan nama atau username
-            $stmt = $this->conn->prepare("SELECT * FROM tbl_user WHERE nama_user LIKE ? OR username LIKE ?");
-            $stmt->bind_param("ss", $key, $key);
-            $stmt->execute();
-            return $stmt->get_result();
+            $stmt = $this->conn->prepare('SELECT * FROM tbl_user WHERE nama_user LIKE ? OR username LIKE ?');
+            $stmt->bind_param('ss', $key, $key);
+        } else {
+            // Diubah ke prepare demi konsistensi keamanan
+            $stmt = $this->conn->prepare('SELECT * FROM tbl_user ORDER BY id_user DESC');
         }
-        return $this->conn->query("SELECT * FROM tbl_user ORDER BY id_user DESC");
+        $stmt->execute();
+        return $stmt->get_result();
     }
 
-    // Ambil data 1 user berdasarkan ID (untuk memicu mode isi form Edit)
-    public function getIdUser($id) {
-        $stmt = $this->conn->prepare("SELECT * FROM tbl_user WHERE id_user = ?");
-        $stmt->bind_param("i", $id);
+    // Ambil data 1 user berdasarkan ID
+    public function getIdUser($id)
+    {
+        $stmt = $this->conn->prepare('SELECT * FROM tbl_user WHERE id_user = ?');
+        $stmt->bind_param('i', $id);
         $stmt->execute();
         return $stmt->get_result()->fetch_object();
     }
 
-    // Tambah data user baru lewat dashboard admin
-    public function createUser($nama, $username, $password) {
+    // Tambah data user baru (Password hashing dipindah ke file proses agar class tetap clean, tapi di sini tetap aman)
+    public function createUser($nama, $username, $password)
+    {
         $pass_hash = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $this->conn->prepare("INSERT INTO tbl_user (nama_user, username, password) VALUES (?, ?, ?)");
-        $stmt->bind_param("sss", $nama, $username, $pass_hash);
+        $stmt = $this->conn->prepare('INSERT INTO tbl_user (nama_user, username, password) VALUES (?, ?, ?)');
+        $stmt->bind_param('sss', $nama, $username, $pass_hash);
         return $stmt->execute();
     }
 
-    // Update data user (jika password kosong, gunakan password lama)
-    public function updateUser($id, $nama, $username, $password) {
+    // Update data user
+    public function updateUser($id, $nama, $username, $password)
+    {
         if (!empty($password)) {
-            // Jika admin menginput password baru di form
             $pass_hash = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $this->conn->prepare("UPDATE tbl_user SET nama_user=?, username=?, password=? WHERE id_user=?");
-            $stmt->bind_param("sssi", $nama, $username, $pass_hash, $id);
+            $stmt = $this->conn->prepare('UPDATE tbl_user SET nama_user=?, username=?, password=? WHERE id_user=?');
+            $stmt->bind_param('sssi', $nama, $username, $pass_hash, $id);
         } else {
-            // Jika admin mengosongkan kolom password (password lama tidak berubah)
-            $stmt = $this->conn->prepare("UPDATE tbl_user SET nama_user=?, username=? WHERE id_user=?");
-            $stmt->bind_param("ssi", $nama, $username, $id);
+            $stmt = $this->conn->prepare('UPDATE tbl_user SET nama_user=?, username=? WHERE id_user=?');
+            $stmt->bind_param('ssi', $nama, $username, $id);
         }
         return $stmt->execute();
     }
 
-    // Hapus data user dari database
-    public function deleteUser($id) {
-        $stmt = $this->conn->prepare("DELETE FROM tbl_user WHERE id_user = ?");
-        $stmt->bind_param("i", $id);
+    // Hapus data user
+    public function deleteUser($id)
+    {
+        $stmt = $this->conn->prepare('DELETE FROM tbl_user WHERE id_user = ?');
+        $stmt->bind_param('i', $id);
         return $stmt->execute();
     }
 
- // ==================== LOGIKA DATA BUKU ====================
-    
+    // ==================== LOGIKA DATA BUKU ====================
+
     // Tampil data + fitur pencarian buku
-    public function readBuku($keyword = "") {
+    public function readBuku($keyword = '')
+    {
         if (!empty($keyword)) {
             $key = "%$keyword%";
-            $stmt = $this->conn->prepare("SELECT * FROM tbl_buku WHERE judul_buku LIKE ? OR pengarang_buku LIKE ?");
-            $stmt->bind_param("ss", $key, $key);
-            $stmt->execute();
-            return $stmt->get_result();
+            $stmt = $this->conn->prepare('SELECT * FROM tbl_buku WHERE judul_buku LIKE ? OR pengarang_buku LIKE ?');
+            $stmt->bind_param('ss', $key, $key);
+        } else {
+            $stmt = $this->conn->prepare('SELECT * FROM tbl_buku ORDER BY id_buku DESC');
         }
-        return $this->conn->query("SELECT * FROM tbl_buku ORDER BY id_buku DESC");
+        $stmt->execute();
+        return $stmt->get_result();
     }
 
-    // Ambil data 1 buku berdasarkan ID (untuk mode Edit)
-    public function getIdBuku($id) {
-        $stmt = $this->conn->prepare("SELECT * FROM tbl_buku WHERE id_buku = ?");
-        $stmt->bind_param("i", $id);
+    // Ambil data 1 buku berdasarkan ID
+    public function getIdBuku($id)
+    {
+        $stmt = $this->conn->prepare('SELECT * FROM tbl_buku WHERE id_buku = ?');
+        $stmt->bind_param('i', $id);
         $stmt->execute();
         return $stmt->get_result()->fetch_object();
     }
 
     // Tambah data buku beserta upload gambarnya
-    public function createBuku($judul, $pengarang, $penerbit, $tahun, $img_name, $img_tmp) {
-        $ext = pathinfo($img_name, PATHINFO_EXTENSION);
-        $nama_baru = uniqid() . "." . $ext;
-        
-        // SUDAH DIPERBAIKI: year -> tahun
-        $stmt = $this->conn->prepare("INSERT INTO tbl_buku (judul_buku, pengarang_buku, penerbit_buku, tahun, gambar) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssss", $judul, $pengarang, $penerbit, $tahun, $nama_baru);
+    // NOTE: Validasi file gambar (mime, size) sebaiknya dilakukan di proses_tambah.php sebelum fungsi ini dipanggil
+    public function createBuku($judul, $pengarang, $penerbit, $tahun, $nama_baru_gambar, $img_tmp)
+    {
+        $stmt = $this->conn->prepare('INSERT INTO tbl_buku (judul_buku, pengarang_buku, penerbit_buku, tahun, gambar) VALUES (?, ?, ?, ?, ?)');
+        $stmt->bind_param('sssss', $judul, $pengarang, $penerbit, $tahun, $nama_baru_gambar);
         $hasil = $stmt->execute();
-        
+
         if ($hasil) {
-            move_uploaded_file($img_tmp, "../gambar/" . $nama_baru);
+            move_uploaded_file($img_tmp, '../gambar/' . $nama_baru_gambar);
         }
         return $hasil;
     }
 
-    // Update data buku (fleksibel jika gambar ganti atau tidak)
-    public function updateBuku($id, $judul, $pengarang, $penerbit, $tahun, $img_name, $img_tmp) {
-        if (!empty($img_name)) {
-            $ext = pathinfo($img_name, PATHINFO_EXTENSION);
-            $nama_baru = uniqid() . "." . $ext;
+    // Update data buku + Otomatis Hapus Gambar Lama jika diganti
+    public function updateBuku($id, $judul, $pengarang, $penerbit, $tahun, $nama_baru_gambar, $img_tmp)
+    {
+        if (!empty($nama_baru_gambar)) {
+            // 1. Ambil nama gambar lama dari database dulu sebelum di-update
+            $bukuLama = $this->getIdBuku($id);
+            $gambarLama = $bukuLama->gambar;
 
-            // SUDAH DIPERBAIKI: year -> tahun, dan bind_param "sssssi"
-            $stmt = $this->conn->prepare("UPDATE tbl_buku SET judul_buku=?, pengarang_buku=?, penerbit_buku=?, tahun=?, gambar=? WHERE id_buku=?");
-            $stmt->bind_param("sssssi", $judul, $pengarang, $penerbit, $tahun, $nama_baru, $id);
+            $stmt = $this->conn->prepare('UPDATE tbl_buku SET judul_buku=?, pengarang_buku=?, penerbit_buku=?, tahun=?, gambar=? WHERE id_buku=?');
+            $stmt->bind_param('sssssi', $judul, $pengarang, $penerbit, $tahun, $nama_baru_gambar, $id);
             $hasil = $stmt->execute();
-            
+
             if ($hasil) {
-                move_uploaded_file($img_tmp, "../gambar/" . $nama_baru);
+                // 2. Pindahkan gambar baru
+                move_uploaded_file($img_tmp, '../gambar/' . $nama_baru_gambar);
+
+                // 3. Hapus gambar lama dari server (jika filenya ada)
+                if (!empty($gambarLama) && file_exists('../gambar/' . $gambarLama)) {
+                    unlink('../gambar/' . $gambarLama);
+                }
             }
             return $hasil;
         } else {
-            // SUDAH DIPERBAIKI: year -> tahun, dan bind_param "ssssi"
-            $stmt = $this->conn->prepare("UPDATE tbl_buku SET judul_buku=?, pengarang_buku=?, penerbit_buku=?, tahun=? WHERE id_buku=?");
-            $stmt->bind_param("ssssi", $judul, $pengarang, $penerbit, $tahun, $id);
+            $stmt = $this->conn->prepare('UPDATE tbl_buku SET judul_buku=?, pengarang_buku=?, penerbit_buku=?, tahun=? WHERE id_buku=?');
+            $stmt->bind_param('ssssi', $judul, $pengarang, $penerbit, $tahun, $id);
             return $stmt->execute();
         }
     }
 
-    // Hapus data buku
-    public function deleteBuku($id) {
-        $stmt = $this->conn->prepare("DELETE FROM tbl_buku WHERE id_buku = ?");
-        $stmt->bind_param("i", $id);
-        return $stmt->execute();
+    // Hapus data buku + Otomatis Hapus File Gambar dari Server
+    public function deleteBuku($id)
+    {
+        // 1. Ambil data gambar yang mau dihapus
+        $buku = $this->getIdBuku($id);
+        if ($buku) {
+            $gambar = $buku->gambar;
+
+            // 2. Jalankan query delete
+            $stmt = $this->conn->prepare('DELETE FROM tbl_buku WHERE id_buku = ?');
+            $stmt->bind_param('i', $id);
+            $hasil = $stmt->execute();
+
+            // 3. Jika query berhasil, hapus file gambarnya dari folder
+            if ($hasil && !empty($gambar) && file_exists('../gambar/' . $gambar)) {
+                unlink('../gambar/' . $gambar);
+            }
+            return $hasil;
+        }
+        return false;
     }
 }
 ?>

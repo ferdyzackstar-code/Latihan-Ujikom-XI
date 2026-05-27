@@ -207,29 +207,29 @@ $listBuku = $db->readBuku($keyword);
                             <label>Judul Buku</label>
                             <input type="text" name="judul_buku"
                                 value="<?= $isEdit ? htmlspecialchars($bEdit->judul_buku) : '' ?>"
-                                placeholder="Judul buku" required>
+                                placeholder="Judul buku" >
                         </div>
                         <div class="group">
                             <label>Pengarang</label>
                             <input type="text" name="pengarang_buku"
                                 value="<?= $isEdit ? htmlspecialchars($bEdit->pengarang_buku) : '' ?>"
-                                placeholder="Nama pengarang" required>
+                                placeholder="Nama pengarang" >
                         </div>
                         <div class="group">
                             <label>Penerbit</label>
                             <input type="text" name="penerbit_buku"
                                 value="<?= $isEdit ? htmlspecialchars($bEdit->penerbit_buku) : '' ?>"
-                                placeholder="Nama penerbit" required>
+                                placeholder="Nama penerbit" >
                         </div>
                         <div class="group">
                             <label>Tahun Terbit</label>
                             <input type="number" name="tahun"
                                 value="<?= $isEdit ? htmlspecialchars($bEdit->tahun) : '' ?>" placeholder="Contoh: 2026"
-                                required>
+                                >
                         </div>
                         <div class="group">
                             <label>Cover Buku</label>
-                            <input type="file" name="gambar" <?= $isEdit ? '' : 'required' ?>>
+                            <input type="file" name="gambar" <?= $isEdit ? '' : '' ?>>
                         </div>
 
                         <button type="submit"

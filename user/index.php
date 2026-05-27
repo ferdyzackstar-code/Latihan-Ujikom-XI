@@ -200,17 +200,17 @@ $listUser = $db->readUser($keyword);
                             <label>Nama User</label>
                             <input type="text" name="nama_user"
                                 value="<?= $isEdit ? htmlspecialchars($uEdit->nama_user) : '' ?>"
-                                placeholder="Nama lengkap" required>
+                                placeholder="Nama lengkap" >
                         </div>
                         <div class="group">
                             <label>Username</label>
                             <input type="text" name="username"
                                 value="<?= $isEdit ? htmlspecialchars($uEdit->username) : '' ?>" placeholder="Username"
-                                required>
+                                >
                         </div>
                         <div class="group">
                             <label>Password</label>
-                            <input type="password" name="password" placeholder="***" <?= $isEdit ? '' : 'required' ?>>
+                            <input type="password" name="password" placeholder="***" <?= $isEdit ? '' : '' ?>>
                         </div>
 
                         <button type="submit"
