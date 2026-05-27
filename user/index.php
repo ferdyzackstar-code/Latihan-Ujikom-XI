@@ -1,18 +1,18 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("Location: ../login.php");
+    header('Location: ../login.php');
     exit();
 }
 
-require_once "../koneksi.php";
-require_once "../query.php";
+require_once '../koneksi.php';
+require_once '../query.php';
 $db = new Query($conn);
 
 $page = 'user';
 $title = 'Kelola Data User';
 
-// LOGIKA IF PHP UNTUK MODE EDIT (Pake GET URL)
+// LOGIKA IF PHP UNTUK MODE EDIT
 $isEdit = false;
 $uEdit = null;
 if (isset($_GET['aksi']) && $_GET['aksi'] == 'edit' && !empty($_GET['id'])) {
@@ -20,141 +20,263 @@ if (isset($_GET['aksi']) && $_GET['aksi'] == 'edit' && !empty($_GET['id'])) {
     $uEdit = $db->getIdUser($_GET['id']);
 }
 
-// Ambil keyword pencarian jika ada
-$keyword = isset($_GET['cari']) ? $_GET['cari'] : "";
+$keyword = isset($_GET['cari']) ? $_GET['cari'] : '';
 $listUser = $db->readUser($keyword);
 ?>
+
 <html>
+
 <head>
-    <meta charset="UTF-8">
-    <title><?= $title; ?></title>
+    <title><?= $title ?></title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 0; }
-        .flex-main { display: flex; min-height: 100vh; }
-        .content { flex: 1; display: flex; flex-direction: column; }
-        .inner-content { padding: 10px 30px 30px 30px; display: flex; gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; }
-        .form-box { width: 320px; }
-        .table-box { flex: 1; }
-        h3 { margin-top: 0; color: #155724; border-bottom: 2px solid #227832; padding-bottom: 8px; }
-        .group { margin-bottom: 12px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
-        input { width: 100%; padding: 8px 10px; border: 2px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        input:focus { border-color: #007bff; outline: none; }
-        .btn { padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; }
-        .btn-blue { background: #007bff; color: white; }
-        .btn-green { background: #28a745; color: white; width: 100%; }
-        .btn-gray { background: #6c757d; color: white; }
-        .btn-blue { background: #0b5ed7; color: white; padding: 6px 12px; font-size: 13px; } /* Edit warna biru di gambar */
-        .btn-red { background: #bb2d3b; color: white; padding: 6px 12px; font-size: 13px; } /* Delete warna merah di gambar */
-        .alert { padding: 10px; border-radius: 6px; margin: 15px 30px 0 30px; font-size: 14px; font-weight: bold; }
-        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 14px; }
-        th { background: #227832; color: white; }
-        tr:nth-child(even) { background: #f9f9f9; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+            background: #f4f6f9;
+        }
+
+        .wrapper-utama {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .area-konten {
+            flex: 1;
+            padding: 20px;
+        }
+
+        /* Topbar langsung disatukan di sini */
+        .topbar-manual {
+            background: white;
+            padding: 15px;
+            border-bottom: 1px solid lightgray;
+            margin-bottom: 20px;
+        }
+
+        /* Layout dua kolom (Form kiri, Tabel kanan) */
+        .inner-content {
+            display: flex;
+            gap: 20px;
+        }
+
+        .kotak-putih {
+            background: white;
+            padding: 20px;
+            border: 1px solid lightgray;
+            border-radius: 6px;
+        }
+
+        .form-box {
+            width: 300px;
+        }
+
+        .table-box {
+            flex: 1;
+        }
+
+        .group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* Tombol & Tabel Polosan */
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 13px;
+        }
+
+        .btn-green {
+            background: #28a745;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-blue {
+            background: #0b5ed7;
+            color: white;
+        }
+
+        .btn-red {
+            background: #bb2d3b;
+            color: white;
+        }
+
+        .btn-gray {
+            background: #6c757d;
+            color: white;
+        }
+
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #227832;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="flex-main">
-    <?php include '../layouts/sidebar.php'; ?>
+    <div class="wrapper-utama">
+        <?php include '../layouts/sidebar.php'; ?>
 
-    <div class="content">
-        <?php include '../layouts/topbar.php'; ?>
+        <div class="area-konten">
+            <div class="topbar-manual">
+                <h2 style="margin: 0;"><?= $title ?></h2>
+            </div>
 
         <?php if (isset($_SESSION['berhasil'])): ?>
             <div class="alert success"><?= $_SESSION['berhasil']; unset($_SESSION['berhasil']); ?></div>
         <?php endif; ?>
+        
         <?php if (isset($_SESSION['error'])): ?>
             <div class="alert danger"><?= $_SESSION['error']; unset($_SESSION['error']); ?></div>
         <?php endif; ?>
 
-        <div class="inner-content">
-            
-            <div class="card form-box">
-                <h3><?= $isEdit ? "Ubah Data User" : "Tambah User"; ?></h3>
-                
-                <form action="<?= $isEdit ? 'proses_edit.php' : 'proses_tambah.php'; ?>" method="POST">
-                    
-                    <?php if ($isEdit): ?>
-                        <input type="hidden" name="id_user" value="<?= $uEdit->id_user; ?>">
-                    <?php endif; ?>
-
-                    <div class="group">
-                        <label>Nama User</label>
-                        <input type="text" name="nama_user" value="<?= $isEdit ? htmlspecialchars($uEdit->nama_user) : ''; ?>" placeholder="Masukkan nama lengkap" required>
-                    </div>
-                    <div class="group">
-                        <label>Username</label>
-                        <input type="text" name="username" value="<?= $isEdit ? htmlspecialchars($uEdit->username) : ''; ?>" placeholder="Masukkan username" required>
-                    </div>
-                    <div class="group">
-                        <label>Password</label>
-                        <input type="password" name="password" placeholder="***" <?= $isEdit ? '' : 'required'; ?>>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-green"><?= $isEdit ? "Simpan Perubahan" : "Tambah User"; ?></button>
-                    
-                    <?php if ($isEdit): ?>
-                        <div style="margin-top: 10px; text-align: center;">
-                            <a href="index.php" class="btn btn-gray" style="width: 100%; box-sizing: border-box;">Batal Edit</a>
-                        </div>
-                    <?php endif; ?>
-                </form>
-            </div>
-
-            <div class="card table-box">
-                <h3>Data User</h3>
-                
-                <form action="index.php" method="GET" style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px;">
-                    <input type="text" name="cari" placeholder="Cari nama atau username..." value="<?= htmlspecialchars($keyword); ?>" style="width: 220px;">
-                    <button type="submit" class="btn btn-blue">Cari</button>
-                </form>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;">No</th>
-                            <th>Nama User</th>
-                            <th>Username</th>
-                            <th>Password</th>
-                            <th>Dibuat</th>
-                            <th style="width: 130px;">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php 
-                        $no = 1;
-                        if ($listUser->num_rows > 0):
-                            while ($row = $listUser->fetch_object()): 
-                        ?>
-                        <tr>
-                            <td><?= $no++; ?></td>
-                            <td><?= htmlspecialchars($row->nama_user); ?></td>
-                            <td><?= htmlspecialchars($row->username); ?></td>
-                            <td>******</td>
-                            <td><?= $row->created_at; ?></td>
-                            <td>
-                                <a href="index.php?aksi=edit&id=<?= $row->id_user; ?>" class="btn btn-blue">Edit</a>
-                                <a href="proses_hapus.php?id=<?= $row->id_user; ?>" class="btn btn-red" onclick="return confirm('Yakin mau menghapus user ini?')">Delete</a>
-                            </td>
-                        </tr>
-                        <?php 
-                            endwhile; 
-                        else:
-                        ?>
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: #666;">Data tidak ditemukan!</td>
-                        </tr>
+            <div class="inner-content">
+                <div class="kotak-putih form-box">
+                    <h3 style="margin-top:0; border-bottom: 2px solid #227832; padding-bottom:5px;">
+                        <?= $isEdit ? 'Ubah User' : 'Tambah User' ?></h3>
+                    <form action="<?= $isEdit ? 'proses_edit.php' : 'proses_tambah.php' ?>" method="POST">
+                        <?php if ($isEdit): ?>
+                        <input type="hidden" name="id_user" value="<?= $uEdit->id_user ?>">
                         <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
 
+                        <div class="group">
+                            <label>Nama User</label>
+                            <input type="text" name="nama_user"
+                                value="<?= $isEdit ? htmlspecialchars($uEdit->nama_user) : '' ?>"
+                                placeholder="Nama lengkap" required>
+                        </div>
+                        <div class="group">
+                            <label>Username</label>
+                            <input type="text" name="username"
+                                value="<?= $isEdit ? htmlspecialchars($uEdit->username) : '' ?>" placeholder="Username"
+                                required>
+                        </div>
+                        <div class="group">
+                            <label>Password</label>
+                            <input type="password" name="password" placeholder="***" <?= $isEdit ? '' : 'required' ?>>
+                        </div>
+
+                        <button type="submit"
+                            class="btn btn-green"><?= $isEdit ? 'Simpan Perubahan' : 'Tambah User' ?></button>
+
+                        <?php if ($isEdit): ?>
+                        <div style="margin-top: 10px;">
+                            <a href="index.php" class="btn btn-gray"
+                                style="width: 100%; text-align: center; box-sizing: border-box;">Batal</a>
+                        </div>
+                        <?php endif; ?>
+                    </form>
+                </div>
+
+                <div class="kotak-putih table-box">
+                    <h3 style="margin-top:0; border-bottom: 2px solid #227832; padding-bottom:5px;">Data User</h3>
+
+                    <form action="index.php" method="GET"
+                        style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px;">
+                        <input type="text" name="cari" placeholder="Cari nama..."
+                            value="<?= htmlspecialchars($keyword) ?>" style="width: 200px;">
+                        <button type="submit" class="btn btn-blue">Cari</button>
+                    </form>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;">No</th>
+                                <th>Nama User</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                                <th style="width: 120px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $no = 1;
+                            if ($listUser->num_rows > 0):
+                                while ($row = $listUser->fetch_object()): 
+                            ?>
+                            <tr>
+                                <td><?= $no++ ?></td>
+                                <td><?= htmlspecialchars($row->nama_user) ?></td>
+                                <td><?= htmlspecialchars($row->username) ?></td>
+                                <td>******</td>
+                                <td>
+                                    <a href="index.php?aksi=edit&id=<?= $row->id_user ?>" class="btn btn-blue">Edit</a>
+                                    <a href="proses_hapus.php?id=<?= $row->id_user ?>" class="btn btn-red"
+                                        onclick="return confirm('Hapus user ini?')">Delete</a>
+                                </td>
+                            </tr>
+                            <?php 
+                                endwhile; 
+                            else:
+                            ?>
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: #666;">Data tidak ditemukan!</td>
+                            </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<?php include '../layouts/footer.php'; ?>
+</body>
+
+</html>

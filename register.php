@@ -2,6 +2,11 @@
 session_start();
 require_once "koneksi.php";
 
+if (isset($_SESSION['username'])) {
+    header("Location: dashboard/index.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $nama     = trim($_POST['nama_user']);
     $username = trim($_POST['username']);
@@ -134,20 +139,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <form action="register.php" method="POST">
         <div class="group">
             <label>Nama Lengkap</label>
-            <input type="text" name="nama_user">
+            <input type="text" name="nama_user" placeholder="Masukkan Nama Lengkap">
         </div>
         <div class="group">
             <label>Username</label>
-            <input type="text" name="username">
+            <input type="text" name="username" placeholder="Masukkan Username">
         </div>
-        <div class="group">
+        <div class="group"> 
             <label>Password</label>
-            <input type="password" name="password">
+            <input type="password" name="password" placeholder="Masukkan Password">
         </div>
         <button type="submit">Daftar</button>
     </form>
 
-    <p style="color: gray; font-size: small;x">Sudah memiliki akun?</p>
+    <p style="color: gray; font-size: small;">Sudah memiliki akun?</p>
     <a href="login.php" class="btn-link">Masuk</a>
 </div>
 
